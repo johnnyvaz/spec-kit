@@ -26,6 +26,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Purpose
 
 Transform the technical `spec.md` into an executive-friendly `spec-stak.md` that:
+
 - Uses visual Mermaid diagrams for clarity (sequence, architecture, timeline, ERD, flowcharts)
 - Focuses on business value, not technical implementation details
 - Tracks approvals, decisions, and changes over time
@@ -47,6 +48,7 @@ Run `{SCRIPT}` once from repository root and parse the JSON output to get:
 - `HAS_GIT`: "true" if git repository, "false" otherwise
 
 **Script execution notes**:
+
 - The script validates that spec.md exists (prerequisite)
 - If spec-stak.md doesn't exist, script copies the template
 - For single quotes in args like "I'm Groot", use escape syntax: `'I'\''m Groot'` (or double-quote if possible: `"I'm Groot"`)
@@ -80,6 +82,7 @@ Read the following files to gather all necessary information:
 ### Step 3: Determine Mode - Create vs Update
 
 **If STAK_EXISTS == "false" (CREATE MODE)**:
+
 - Generate complete spec-stak.md from scratch
 - Initialize all sections with content derived from spec.md
 - Set Status to "Pending Approval"
@@ -88,6 +91,7 @@ Read the following files to gather all necessary information:
 - Set Version to "1.0" in Change History
 
 **If STAK_EXISTS == "true" (INCREMENTAL UPDATE MODE)**:
+
 - Parse existing spec-stak.md to extract preservation-priority content
 - **NEVER modify these sections** (preserve exactly as-is):
   - Approval & Governance → Approval Status table
@@ -114,7 +118,7 @@ Transform technical language from spec.md into executive/business language:
 **Language Simplification Guidelines**:
 
 | Technical Term | Business Language |
-|----------------|-------------------|
+| --- | --- |
 | Authentication service | User login system |
 | API endpoint | Connection point / Integration |
 | Database schema | Data structure |
@@ -129,6 +133,7 @@ Transform technical language from spec.md into executive/business language:
 **Focus**: Always frame in terms of WHAT users can do and WHY it matters to the business, never HOW it's implemented technically.
 
 **Metrics Transformation**:
+
 - "API latency < 200ms" → "Instant response for users (under 0.2 seconds)"
 - "Database throughput 1000 TPS" → "Support 1000 simultaneous user actions per second"
 - "99.9% uptime SLA" → "Available 24/7 with minimal downtime (99.9% reliability)"
@@ -143,6 +148,7 @@ Apply these heuristics to determine which diagrams to generate:
 **Source**: Priority 1 (P1) user story from spec.md User Scenarios section
 
 **Logic**:
+
 1. Find the first P1 user story
 2. Extract Given/When/Then acceptance scenarios
 3. Convert to sequence diagram interactions (limit: 6-8 steps)
@@ -150,6 +156,7 @@ Apply these heuristics to determine which diagrams to generate:
 5. Add `Note` for critical context
 
 **Example**:
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -169,6 +176,7 @@ sequenceDiagram
 **Source**: Key Entities section from spec.md
 
 **Logic**:
+
 1. Identify all entities in Key Entities section
 2. Abstract to major system components (3-5 components)
 3. Use business-friendly component names
@@ -176,6 +184,7 @@ sequenceDiagram
 5. Apply color styling for visual hierarchy
 
 **Component naming**:
+
 - If entities include User, Account, Profile → Component: "User Management"
 - If entities include Order, Payment, Cart → Component: "Transaction Processing"
 - If entities include Product, Category, Inventory → Component: "Product Catalog"
@@ -183,6 +192,7 @@ sequenceDiagram
 - Always include: "User Interface", "Core System", "Data Storage"
 
 **Example**:
+
 ```mermaid
 graph TD
     A[User Interface] --> B[Core Business Logic]
@@ -200,12 +210,14 @@ graph TD
 **Generate if**: 3+ entities exist in Key Entities section with clear relationships
 
 **Logic**:
+
 1. Extract entity names from Key Entities section
 2. Identify relationships (one-to-many, many-to-many)
 3. Include 3-5 key attributes per entity (in business language)
 4. Use cardinality notation
 
 **Example**:
+
 ```mermaid
 erDiagram
     USER ||--o{ ORDER : places
@@ -234,6 +246,7 @@ erDiagram
 **Generate if**: Multiple priority levels exist (P1, P2, P3) in User Scenarios
 
 **Logic**:
+
 1. Count user stories by priority (P1, P2, P3)
 2. Create phases: Phase 1 (P1 stories), Phase 2 (P2 stories), Phase 3 (P3 stories)
 3. Estimate duration based on story count:
@@ -243,6 +256,7 @@ erDiagram
 4. Use sequential phases (Phase 2 starts when Phase 1 ends)
 
 **Example**:
+
 ```mermaid
 gantt
     title Delivery Roadmap
@@ -263,12 +277,14 @@ gantt
 **Generate if**: 5+ edge cases OR complex conditional logic in Edge Cases section
 
 **Logic**:
+
 1. Extract major decision points from Edge Cases
 2. Identify yes/no branches or multiple options
 3. Show outcomes for each path
 4. Limit to 3-4 decision nodes for readability
 
 **Example**:
+
 ```mermaid
 flowchart TD
     A[User submits form] --> B{Data valid?}
@@ -282,22 +298,26 @@ flowchart TD
 ### Step 6: Populate Business Case Section
 
 #### Problem Statement
+
 - Extract from spec.md introduction or user scenarios
 - Rephrase in business language (user pain points, market opportunity)
 
 #### Proposed Solution
+
 - Summarize P1 user stories in 2-3 paragraphs
 - Focus on capabilities users gain, not technical implementation
 
 #### Success Metrics Table
+
 - Convert each SC-XXX success criterion from spec.md to table row
 - Extract target values
 - Define measurement method in business terms
 - Estimate timeline (typically 1-3 months post-launch for adoption metrics)
 
 **Example**:
+
 | Metric | Target | Measurement Method | Timeline |
-|--------|--------|-------------------|----------|
+| --- | --- | --- | --- |
 | User adoption rate | 1000 active users | Analytics dashboard | 3 months post-launch |
 | Task completion time | Under 2 minutes | User testing and analytics | At launch |
 | Customer satisfaction | 90% positive rating | Post-interaction survey | Ongoing |
@@ -309,11 +329,13 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 **Do NOT prompt user for ROI data** - instead, populate with estimation placeholders:
 
 **Estimated Costs**:
+
 - Development: [Pending estimate - based on implementation plan]
 - Resources: [Pending resource allocation]
 - Infrastructure: [Pending infrastructure assessment]
 
 **Expected Benefits**:
+
 - [Benefit derived from success criteria 1]
 - [Benefit derived from success criteria 2]
 - [Qualitative benefit from user value]
@@ -325,13 +347,16 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 ### Step 7: Populate User Impact & Value Section
 
 #### Primary User Personas
+
 - Extract from User Scenarios or infer from requirements
 - List 2-4 user types with brief descriptions
 
 #### User Journey Visualization
+
 - Insert the User Journey Sequence Diagram generated in Step 5A
 
 #### Value Delivery by Priority
+
 - Group user stories by priority (P1, P2, P3)
 - For each story, write in business language:
   - **Story title** (without technical details)
@@ -341,20 +366,24 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 ### Step 8: Populate Implementation Overview Section
 
 #### High-Level Architecture
+
 - Insert the Architecture Diagram generated in Step 5B
 - List 3-5 key components with business-language descriptions
 
 #### Delivery Phases
+
 - Insert Timeline Gantt Chart if generated (Step 5D)
 - Describe what's delivered in each phase
 
 #### Key Entities & Data Model
+
 - Insert ERD if generated (Step 5C)
 - Provide 1-2 sentence explanation of data model in business terms
 
 ### Step 9: Populate Risk Assessment Section
 
 #### Identified Risks
+
 - Extract from Edge Cases section in spec.md
 - Convert to risk statements (what could go wrong)
 - Estimate likelihood and impact (High/Med/Low)
@@ -362,10 +391,12 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 - Leave Owner as "[To be assigned]"
 
 **Example conversion**:
+
 - Edge case: "What if user uploads file over 100MB?"
 - Risk: "Large file uploads may cause performance issues | Likelihood: Med | Impact: Med | Mitigation: Implement file size limits and validation"
 
 #### Dependencies & Constraints
+
 - Extract from spec.md if mentioned
 - List external dependencies (APIs, services, data sources)
 - List technical constraints in business language
@@ -374,15 +405,18 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 ### Step 10: Populate Decision Framework Section
 
 #### Assumptions Made
+
 - Extract from Assumptions section in spec.md if present
 - List 3-5 key assumptions
 
 #### Open Questions
+
 - Extract any `[NEEDS CLARIFICATION]` markers from spec.md
 - Rephrase as questions for stakeholder decision
 - Prioritize (High/Med/Low)
 
 #### Alternatives Considered
+
 - Leave empty with placeholder: "[To be documented during planning phase]"
 
 ### Step 11: Populate Approval & Governance Section
@@ -390,6 +424,7 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 #### Approval Status Table
 
 **For CREATE MODE**:
+
 ```markdown
 | Stakeholder | Role | Status | Date | Comments |
 |-------------|------|--------|------|----------|
@@ -399,6 +434,7 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 ```
 
 **For UPDATE MODE**:
+
 - Read existing table from current spec-stak.md
 - Preserve ALL rows exactly as-is (do not modify Status, Date, or Comments)
 - Only add new rows if user explicitly provides: "Add approver: [Name], [Role]"
@@ -406,9 +442,11 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 #### Decision Log Table
 
 **For CREATE MODE**:
+
 - Leave empty (no decisions yet)
 
 **For UPDATE MODE**:
+
 - Read existing entries
 - Preserve all existing entries
 - Append new entries ONLY if user explicitly provides decision information
@@ -416,6 +454,7 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 #### Change History Table
 
 **For CREATE MODE**:
+
 ```markdown
 | Version | Date | Changes | Author | Reason |
 |---------|------|---------|--------|--------|
@@ -423,10 +462,12 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 ```
 
 **For UPDATE MODE**:
+
 1. Read existing table
 2. Parse latest version number (e.g., "1.2")
 3. Increment minor version: 1.2 → 1.3
 4. Append new row:
+
 ```markdown
 | 1.3 | [TODAY'S DATE] | [Summarize what sections changed] | AI Agent | Updated from spec.md changes |
 ```
@@ -436,12 +477,14 @@ If user provides ROI information in arguments, use it. Otherwise, use this appro
 Before writing the final spec-stak.md file, verify:
 
 **Content Quality**:
+
 - [ ] Executive Summary uses no technical jargon (no "API", "database", "service", "endpoint")
 - [ ] Business Case focuses on user value and ROI, not implementation
 - [ ] All metrics in Success Metrics table are measurable and include target values
 - [ ] User stories are written in business language (no code, frameworks, or libraries)
 
 **Diagram Quality**:
+
 - [ ] At least 2 diagrams generated (User Journey + Architecture minimum)
 - [ ] All Mermaid diagrams use valid syntax (test: proper keywords, arrows, braces)
 - [ ] Sequence diagram limited to 6-8 steps (readability)
@@ -449,18 +492,21 @@ Before writing the final spec-stak.md file, verify:
 - [ ] Gantt chart has valid dateFormat and reasonable durations
 
 **Preservation (Update Mode Only)**:
+
 - [ ] Approval Status table preserved exactly (no changes to Status/Date/Comments)
 - [ ] Decision Log has all previous entries (no deletions)
 - [ ] Change History has new version entry with incremented version number
 - [ ] Any `<!-- STAKEHOLDER: ... -->` sections preserved
 
 **Completeness**:
+
 - [ ] All sections have content (no "[TODO]" markers)
 - [ ] All tables are properly formatted (aligned pipes, proper headers)
 - [ ] Change History version matches document status
 - [ ] Appendix links point to correct file paths
 
 **If validation fails**:
+
 - Fix issues before writing file
 - If critical content missing from spec.md, add note: "[Pending spec.md completion]"
 - If unable to generate diagram due to insufficient data, include placeholder with explanation
@@ -480,6 +526,7 @@ Use atomic write strategy:
 5. Preserve original file permissions if updating
 
 **Do NOT**:
+
 - Write incrementally (build in memory first)
 - Modify file multiple times (single atomic write)
 - Change file permissions on update
@@ -488,7 +535,7 @@ Use atomic write strategy:
 
 Output a summary to the user:
 
-```
+```text
 ✓ Stakeholder documentation generated: [SPEC_STAK path]
 ✓ Mode: [CREATE/INCREMENTAL UPDATE]
 ✓ Diagrams generated: [list diagram types - e.g., "User Journey, Architecture, Timeline"]
@@ -520,21 +567,25 @@ Manual Editing Instructions:
 ### 1. Preservation Rules (Incremental Mode)
 
 **NEVER modify**:
+
 - Approval Status entries (Status, Date, Comments columns)
 - Decision Log entries (any existing rows)
 - Content marked with `<!-- STAKEHOLDER: ... -->`
 - Content marked with `<!-- PRESERVE -->`
 
 **ALWAYS preserve**:
+
 - Manual formatting changes in preserved sections
 - Custom stakeholder comments and annotations
 - Approval signatures and timestamps
 
 **ALWAYS append** (never delete):
+
 - Change History entries
 - Decision Log entries (only when explicitly requested by user)
 
 **Smart update**:
+
 - Only regenerate sections when source content meaningfully changed
 - Add `<!-- AUTO-GENERATED: [section] - Last updated: [date] -->` markers to auto-updated sections
 - Detect manual edits by looking for `<!-- MANUAL-EDIT: [date] -->` markers
@@ -542,6 +593,7 @@ Manual Editing Instructions:
 ### 2. Business Language Guidelines
 
 **Avoid these terms**:
+
 - refactoring, API, database, schema, endpoint, service, microservice
 - REST, GraphQL, SQL, NoSQL, ORM, cache, queue
 - framework names (React, Django, Express, etc.)
@@ -549,12 +601,14 @@ Manual Editing Instructions:
 - deployment terms (Docker, Kubernetes, CI/CD, etc.)
 
 **Use these instead**:
+
 - improving code quality, connection, storage, structure, feature, system, component
 - data retrieval method, stored data, data organization, speed optimization, task coordination
 - web technology, programming approach, development tool
 - deployment process, automation, continuous delivery
 
 **Frame everything**:
+
 - In terms of user value (what users can DO)
 - With business impact (revenue, cost savings, efficiency, user satisfaction)
 - With concrete metrics (time saved, users served, errors reduced)
@@ -563,30 +617,35 @@ Manual Editing Instructions:
 ### 3. Diagram Quality Standards
 
 **Sequence Diagrams**:
+
 - Limit to 6-8 interactions (readability)
 - Use clear participant names (User, System, External Service)
 - Include Note blocks for critical context
 - Show both success and key error paths if complex
 
 **Architecture Diagrams**:
+
 - 3-6 components maximum (high-level only)
 - Use color styling for visual hierarchy (fill:#colorcode)
 - Label relationships clearly
 - Abstract technical details to business components
 
 **Entity Relationship Diagrams**:
+
 - 3-5 entities maximum (core entities only)
 - 3-5 attributes per entity (key fields only)
 - Use business-friendly field names
 - Show cardinality (||--o{) clearly
 
 **Timeline Diagrams**:
+
 - 3-4 phases maximum
 - Use realistic date ranges
 - Label phases clearly (MVP, Enhanced, Polish)
 - Show parallel work if applicable
 
 **Validate Mermaid syntax**:
+
 - Check for proper keywords (sequenceDiagram, graph, erDiagram, gantt, flowchart)
 - Verify arrow syntax (-->, -->, ->>)
 - Ensure braces and quotes are balanced
@@ -595,12 +654,15 @@ Manual Editing Instructions:
 ### 4. Error Handling
 
 **If spec.md is incomplete**:
+
 - Generate partial spec-stak.md with placeholders
 - Mark missing sections with: "[Pending spec.md completion - [section name]]"
 - Include note at top: "⚠️ This stakeholder document is based on an incomplete technical specification. Some sections are placeholders pending spec.md updates."
 
 **If diagram generation fails**:
+
 - Include text-based placeholder:
+
 ```markdown
 ## [Diagram Title]
 
@@ -612,10 +674,12 @@ Manual Editing Instructions:
 ```
 
 **If ROI data unavailable**:
+
 - Use placeholders: "[Pending stakeholder input]"
 - Add comment: `<!-- ROI estimates require business case analysis and stakeholder input -->`
 
 **Never fail completely**:
+
 - Always generate spec-stak.md, even if partial
 - Clearly mark gaps and placeholders
 - Provide instructions for manual completion

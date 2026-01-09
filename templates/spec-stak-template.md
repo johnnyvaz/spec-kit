@@ -25,7 +25,7 @@
 ### Approval Status
 
 | Stakeholder | Role | Status | Date | Comments |
-|-------------|------|--------|------|----------|
+| --- | --- | --- | --- | --- |
 | [To be assigned] | Executive Sponsor | Pending | - | - |
 | [To be assigned] | Product Owner | Pending | - | - |
 | [To be assigned] | Technical Lead | Pending | - | - |
@@ -35,7 +35,7 @@
 ### Decision Log
 
 | Date | Decision | Rationale | Decided By | Impact |
-|------|----------|-----------|------------|--------|
+| --- | --- | --- | --- | --- |
 | [Date] | [What was decided] | [Why this decision was made] | [Decision maker] | High/Med/Low |
 
 **Instructions**: Append new rows as major decisions are made. Do not remove existing entries.
@@ -43,7 +43,7 @@
 ### Change History
 
 | Version | Date | Changes | Author | Reason |
-|---------|------|---------|--------|--------|
+| --- | --- | --- | --- | --- |
 | 1.0 | [DATE] | Initial draft | AI Agent | Initial stakeholder documentation |
 
 **Instructions**: Append new rows when spec-stak.md is updated. Auto-increment version (1.0 → 1.1 → 1.2).
@@ -63,7 +63,7 @@
 ### Success Metrics
 
 | Metric | Target | Measurement Method | Timeline |
-|--------|--------|-------------------|----------|
+| --- | --- | --- | --- |
 | [KPI name] | [Target value] | [How it will be measured] | [When target should be achieved] |
 | [Example: User adoption] | [Example: 1000 active users] | [Example: Analytics dashboard] | [Example: 3 months post-launch] |
 | [Example: Task completion time] | [Example: Under 2 minutes] | [Example: User testing] | [Example: At launch] |
@@ -71,12 +71,14 @@
 ### Return on Investment (ROI)
 
 **Estimated Costs**:
+
 - Development: [Estimated hours or weeks]
 - Resources: [Team composition - e.g., 2 developers, 1 designer]
 - Infrastructure: [Any new infrastructure costs]
 - Total estimated cost: [Dollar amount or resource commitment]
 
 **Expected Benefits**:
+
 - [Quantifiable benefit 1 - e.g., "Reduce support tickets by 30%"]
 - [Quantifiable benefit 2 - e.g., "Increase user engagement by 20%"]
 - [Qualitative benefit - e.g., "Improved brand reputation"]
@@ -92,6 +94,7 @@
 [Brief descriptions of who will benefit from this feature. Include user types, their goals, and how this feature helps them.]
 
 **Example**:
+
 - **End Users**: People who will use the primary feature to [achieve goal]
 - **Administrators**: People who manage and configure the system
 - **Stakeholders**: People who gain insight or reporting capabilities
@@ -157,6 +160,7 @@ graph TD
 **Instructions**: This diagram will be auto-generated from Key Entities in spec.md. Components represent major system parts in business terms.
 
 **Key Components**:
+
 - **[Component 1]**: [What it does in business language]
 - **[Component 2]**: [What it does in business language]
 - **[Component 3]**: [What it does in business language]
@@ -181,6 +185,7 @@ gantt
 **Instructions**: This timeline will be estimated based on user story priorities. Adjust dates as actual project plan is finalized.
 
 **Phase Breakdown**:
+
 - **Phase 1 (MVP)**: [What will be delivered - P1 features]
 - **Phase 2 (Enhanced)**: [What will be delivered - P2 features]
 - **Phase 3 (Polish)**: [What will be delivered - P3 features]
@@ -209,7 +214,7 @@ erDiagram
 ### Identified Risks
 
 | Risk | Likelihood | Impact | Mitigation Strategy | Owner |
-|------|------------|--------|---------------------|-------|
+| --- | --- | --- | --- | --- |
 | [Risk description] | High/Med/Low | High/Med/Low | [How we'll address it] | [Person responsible] |
 | [Example: Timeline constraints] | [Med] | [High] | [Buffer time in estimates, clear scope definition] | [PM] |
 | [Example: Technical complexity] | [Med] | [Med] | [Proof of concept, expert consultation] | [Tech Lead] |
@@ -217,14 +222,17 @@ erDiagram
 ### Dependencies & Constraints
 
 **External Dependencies**:
+
 - **[Dependency 1]**: [Status and risk level - e.g., "Third-party API (stable, low risk)"]
 - **[Dependency 2]**: [Status and risk level]
 
 **Technical Constraints**:
+
 - [Constraint 1 in business language - e.g., "Must work on mobile devices"]
 - [Constraint 2 - e.g., "Must maintain performance with 10,000 concurrent users"]
 
 **Business Constraints**:
+
 - **Timeline**: [Any hard deadline constraints]
 - **Budget**: [Any budget limitations]
 - **Resources**: [Team availability or limitations]
@@ -257,7 +265,7 @@ erDiagram
 [Document any alternative approaches that were considered and why they were not chosen. Helpful for future reference.]
 
 | Alternative | Pros | Cons | Why Not Chosen |
-|-------------|------|------|----------------|
+| --- | --- | --- | --- |
 | [Approach A] | [Benefits] | [Drawbacks] | [Reason for rejection] |
 | [Approach B] | [Benefits] | [Drawbacks] | [Reason for rejection] |
 
@@ -268,7 +276,7 @@ erDiagram
 ### Review Checkpoints
 
 | Checkpoint | Purpose | Participants | Timing | Status |
-|------------|---------|--------------|--------|--------|
+| --- | --- | --- | --- | --- |
 | Initial Review | Validate business case and approach | [Executive Sponsor, Product Owner] | [Date] | Pending |
 | Design Review | Architecture and technical approach approval | [Technical Lead, Architects] | [After plan.md created] | Pending |
 | Mid-Implementation Review | Progress check and course correction | [PM, Product Owner, Stakeholders] | [Midpoint of implementation] | Pending |
@@ -284,7 +292,7 @@ erDiagram
 ### Key Stakeholders
 
 | Name | Role | Interest Level | Influence Level | Engagement Strategy |
-|------|------|----------------|-----------------|---------------------|
+| --- | --- | --- | --- | --- |
 | [Name] | [Role] | High/Med/Low | High/Med/Low | [How to keep them engaged] |
 
 ---
@@ -302,12 +310,14 @@ For detailed technical specifications and implementation plans, see:
 ---
 
 **Document Information**:
+
 - **Last Generated**: [Timestamp]
 - **Generated By**: Spec Kit `/speckit.stak` command
 - **Version**: 1.0
 - **Status**: Pending Approval
 
 **Instructions for Stakeholders**:
+
 - Review each section thoroughly, paying special attention to Business Case, Success Metrics, and ROI
 - Update Approval Status table with your decision and comments
 - Add entries to Decision Log as major decisions are made
