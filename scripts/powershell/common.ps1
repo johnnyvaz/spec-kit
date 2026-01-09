@@ -109,6 +109,7 @@ function Get-FeaturePathsEnv {
         RESEARCH      = Join-Path $featureDir 'research.md'
         DATA_MODEL    = Join-Path $featureDir 'data-model.md'
         QUICKSTART    = Join-Path $featureDir 'quickstart.md'
+        SPEC_STAK     = Join-Path $featureDir 'spec-stak.md'
         CONTRACTS_DIR = Join-Path $featureDir 'contracts'
     }
 }

@@ -1,6 +1,9 @@
 ---
 description: Execute the implementation planning workflow using the plan template to generate design artifacts.
-handoffs: 
+handoffs:
+  - label: Update Stakeholder Documentation
+    agent: speckit.stak
+    prompt: Sync spec-stak.md with latest technical changes
   - label: Create Tasks
     agent: speckit.tasks
     prompt: Break the plan into tasks
