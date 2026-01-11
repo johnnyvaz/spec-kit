@@ -10,6 +10,9 @@ handoffs:
   - label: Analyze Consistency
     agent: speckit.analyze
     prompt: Analyze cross-artifact consistency
+  - label: Print Overview
+    agent: speckit.print
+    prompt: Generate A4 print-optimized HTML overview
 scripts:
   sh: scripts/bash/generate-stak.sh --json
   ps: scripts/powershell/generate-stak.ps1 -Json

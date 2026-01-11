@@ -11,6 +11,9 @@ handoffs:
   - label: Create Checklist
     agent: speckit.checklist
     prompt: Create a checklist for the following domain...
+  - label: Print Overview
+    agent: speckit.print
+    prompt: Generate A4 print-optimized HTML overview
 scripts:
   sh: scripts/bash/setup-plan.sh --json
   ps: scripts/powershell/setup-plan.ps1 -Json
