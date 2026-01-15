@@ -1,5 +1,5 @@
 ---
-description: Generate A4 print-optimized HTML combining business and technical specification overview
+description: Generate print-optimized PDF from specification markdown files with automatic Mermaid diagram rendering
 handoffs:
   - label: Clarify Specification
     agent: speckit.clarify
@@ -25,12 +25,13 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Purpose
 
-Generate a print-optimized HTML document (A4 format) that combines:
-- **Business content** from `spec-stak.md` (if available): Executive Summary, Success Metrics, ROI, Approval Status, Mermaid diagrams
-- **Technical content** from `spec.md`: User Stories (P1 detailed, P2/P3 summarized), Key Entities, Success Criteria
-- **Interactive elements**: Checkboxes for progress tracking, blank lines for manual notes, date fields
+Generate a print-optimized PDF document directly from Markdown source files with:
+- **Automatic Mermaid rendering**: Diagrams converted to PNG images automatically
+- **Professional formatting**: A4 format with proper margins and typography
+- **Source control friendly**: Markdown remains the single source of truth
+- **Fast generation**: ~15 seconds vs manual browser printing
 
-**Why this exists**: Working with AI involves extensive screen time that can cause visual stress. This command creates a physical A4 document for offline review, providing visual clarity and a comprehensive overview of what needs to be done.
+**Why this exists**: Working with AI involves extensive screen time that can cause visual stress. This command creates professional PDFs from your specification files for offline review, reducing screen fatigue during development.
 
 ## Execution Steps
 
@@ -38,720 +39,240 @@ Generate a print-optimized HTML document (A4 format) that combines:
 
 Run `{SCRIPT}` once from repository root and parse the JSON output to get:
 
-- `FEATURE_SPEC`: Path to spec.md (input source - technical specification)
-- `SPEC_STAK`: Path to spec-stak.md (optional input for business content)
-- `PRINT_OUTPUT`: Path to spec-print.html (output target)
+- `FEATURE_SPEC`: Path to spec.md (technical specification)
+- `SPEC_STAK`: Path to spec-stak.md (stakeholder documentation)
+- `SPEC_PDF`: Output path for spec.pdf
+- `STAK_PDF`: Output path for spec-stak.pdf
 - `FEATURE_DIR`: Feature directory path
 - `BRANCH`: Current feature branch name
 - `STAK_EXISTS`: "true" if spec-stak.md available, "false" otherwise
+- `IMAGES_DIR`: Path where Mermaid diagram PNGs will be saved
 - `HAS_GIT`: "true" if git repository, "false" otherwise
 
-**Script execution notes**:
-- The script validates that spec.md exists (prerequisite)
-- spec-stak.md is optional (enhances output with business content)
-- For single quotes in args like "I'm Groot", use escape syntax: `'I'\''m Groot'` (or double-quote if possible: `"I'm Groot"`)
+### Step 2: Determine Target Files
 
-### Step 2: Load Source Content
+Based on user input and available files:
 
-Read the following files to gather all necessary information:
+**If user specified a file** (e.g., "spec.md", "plan.md"):
+- Use that specific file as target
 
-1. **`FEATURE_SPEC` (spec.md)** - Always required. Extract:
-   - Feature name and metadata (branch, date, status)
-   - User Scenarios & Testing section (all user stories with priorities P1/P2/P3)
-   - Requirements section (all FR-XXX functional requirements)
-   - Success Criteria section (all SC-XXX measurable outcomes)
-   - Edge Cases section
-   - Key Entities section (data model concepts)
-   - Assumptions section (if present)
+**If no file specified**:
+- If `STAK_EXISTS == "true"`: Default to spec-stak.md (stakeholder-friendly)
+- If `STAK_EXISTS == "false"`: Default to spec.md (technical)
 
-2. **`SPEC_STAK` (if STAK_EXISTS == "true")** - Optional. Extract:
-   - Executive Summary section
-   - Business Case → Success Metrics table
-   - Business Case → ROI section
-   - Approval & Governance → Approval Status table
-   - Decision Framework → Open Questions section
-   - All Mermaid diagrams (User Journey, Architecture, ERD, Timeline, Flowcharts)
+**Available targets** in a typical feature directory:
+- `spec.md` - Technical specification
+- `spec-stak.md` - Stakeholder documentation
+- `plan.md` - Implementation plan
+- `tasks.md` - Task list
+- Any other `.md` file
 
-3. **`/memory/constitution.md` (if exists)** - Optional reference:
-   - Project principles (for context in notes section)
+### Step 3: Check Prerequisites
 
-### Step 3: Extract Business Content (if spec-stak.md exists)
+Before generating PDF, verify:
 
-If `STAK_EXISTS == "true"`, extract the following from spec-stak.md:
+1. **Target file exists**:
+   ```
+   if [ ! -f "$TARGET_FILE" ]; then
+       echo "ERROR: File not found: $TARGET_FILE"
+       exit 1
+   fi
+   ```
 
-**Executive Summary**:
-- Problem statement
-- Solution overview
-- Key value proposition
+2. **Node.js available** (for md-to-pdf):
+   ```
+   if ! command -v node &> /dev/null; then
+       echo "ERROR: Node.js required. Install from https://nodejs.org/"
+       exit 1
+   fi
+   ```
 
-**Success Metrics** (from Business Case section):
-- Table with columns: Metric | Target | Measurement Method
-- Extract all rows
+3. **Optional: Puppeteer for Mermaid** (will fallback gracefully if missing)
 
-**ROI Information**:
-- Expected revenue impact
-- Cost savings
-- Implementation investment
+### Step 4: Generate PDF
 
-**Approval Status**:
-- Table with columns: Role | Name | Status | Date | Comments
-- Extract current approval state
+Execute the PDF generation script:
 
-**Mermaid Diagrams**:
-- Store complete Mermaid code blocks for:
-  - User Journey (sequence diagram)
-  - High-Level Architecture (graph)
-  - Entity Relationship Diagram
-  - Implementation Timeline (Gantt chart)
-  - Decision Flowchart
-- Keep diagram code as-is for rendering
-
-### Step 4: Extract Technical Content (from spec.md)
-
-Extract the following from spec.md:
-
-**User Stories**:
-- Parse all user stories from "User Scenarios & Testing" section
-- For each story, extract:
-  - Priority (P1, P2, or P3)
-  - Story title/description
-  - Acceptance scenarios (for P1 only - detailed)
-  - Independent test description (if present)
-- **Content strategy**:
-  - P1 stories: Full description + all acceptance scenarios (max 3 scenarios per story to fit A4)
-  - P2 stories: Title only + priority badge
-  - P3 stories: Title only + priority badge
-
-**Key Entities**:
-- Extract all entities from "Key Entities" section
-- For each entity: Name + brief description
-- **Limit**: If more than 15 entities, show top 10 most critical + count of omitted entities
-
-**Success Criteria**:
-- Extract all SC-XXX items from "Success Criteria" section
-- Format: ID + description
-- Will be displayed with checkboxes for tracking
-
-**Clarification Items**:
-- Search entire spec.md for `[NEEDS CLARIFICATION]` markers
-- Extract the question/topic that needs clarification
-- Include section/context where it appears
-
-**Technical Decisions** (from spec-stak.md if exists):
-- Extract items from "Decision Framework → Open Questions" section
-- These are decisions that need team discussion
-- Include assumptions if documented
-
-### Step 5: Build HTML Structure
-
-Create the HTML document with this structure:
-
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[FEATURE_NAME] - Visão Completa para Impressão</title>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script>
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'neutral',
-            securityLevel: 'loose'
-        });
-    </script>
-    <style>
-        /* CSS will be embedded here in Step 6 */
-    </style>
-</head>
-<body>
-    <!-- Content will be populated in Steps 7-9 -->
-</body>
-</html>
+**Option A: Using the bash script directly**:
+```bash
+scripts/bash/generate-print.sh --generate [target-file.md]
 ```
 
-**Feature name extraction**:
-- Use branch name (BRANCH field) or feature directory name
-- Format: Convert "NNN-feature-name" → "Feature Name"
-
-### Step 6: Generate CSS Framework
-
-Embed the following CSS in the `<style>` section:
-
-```css
-/* Page setup for A4 printing */
-@page {
-    size: A4;
-    margin: 15mm;
-}
-
-/* Global resets and print optimization */
-* {
-    color: #333 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    font-size: 7pt;
-    color: #333;
-    line-height: 1.3;
-    padding: 10px;
-}
-
-/* Typography */
-h1 {
-    font-size: 10pt;
-    border-bottom: 1px solid #666;
-    padding-bottom: 3px;
-    margin: 0 0 5px 0;
-}
-
-h2 {
-    font-size: 8pt;
-    margin: 5px 0 3px 0;
-    background: #f0f0f0;
-    padding: 2px 4px;
-}
-
-h3 {
-    font-size: 7pt;
-    margin: 3px 0 2px 0;
-    font-weight: bold;
-}
-
-/* Layout - Three columns */
-.cols {
-    display: flex;
-    gap: 8px;
-    margin-top: 5px;
-}
-
-.col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-/* Section color coding */
-.business {
-    background: #e3f2fd !important;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.technical {
-    background: #fff9e6 !important;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.interactive {
-    background: #e8f5e9 !important;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-/* Tables */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 6pt;
-    margin: 3px 0;
-}
-
-th, td {
-    border: 0.5px solid #666;
-    padding: 2px 3px;
-    text-align: left;
-    vertical-align: top;
-}
-
-th {
-    background: #f0f0f0;
-    font-weight: bold;
-}
-
-/* Interactive elements */
-.checkbox {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border: 0.5px solid #666;
-    margin-right: 3px;
-    vertical-align: middle;
-}
-
-.item {
-    display: flex;
-    align-items: flex-start;
-    gap: 3px;
-    min-height: 14px;
-    margin: 2px 0;
-}
-
-.item-text {
-    flex: 1;
-    border-bottom: 0.5px solid #ccc;
-    min-height: 12px;
-    padding: 0 2px;
-}
-
-.linha {
-    border-bottom: 0.5px solid #ccc;
-    min-height: 12px;
-    margin: 2px 0;
-}
-
-/* Priority badges */
-.priority {
-    display: inline-block;
-    padding: 1px 4px;
-    border-radius: 2px;
-    font-size: 6pt;
-    font-weight: bold;
-    margin-right: 3px;
-}
-
-.priority-p1 {
-    background: #ffcdd2;
-    color: #c62828 !important;
-}
-
-.priority-p2 {
-    background: #fff9c4;
-    color: #f57f17 !important;
-}
-
-.priority-p3 {
-    background: #c8e6c9;
-    color: #2e7d32 !important;
-}
-
-/* Mermaid diagrams */
-.mermaid {
-    max-width: 100%;
-    overflow: hidden;
-    margin: 5px 0;
-}
-
-.mermaid svg {
-    max-width: 100%;
-    height: auto;
-}
-
-/* Print optimizations */
-@media print {
-    .page-break {
-        page-break-before: always;
-    }
-
-    table {
-        page-break-inside: avoid;
-    }
-
-    section {
-        page-break-inside: avoid;
-    }
-}
-
-/* Footer */
-.footer {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 5pt;
-    color: #999 !important;
-    border-top: 0.5px solid #ccc;
-    padding-top: 3px;
-}
-
-/* Notice box */
-.notice {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    padding: 5px;
-    margin: 5px 0;
-    font-size: 6pt;
-    border-radius: 3px;
-}
+**Option B: Using Node.js script directly**:
+```bash
+node scripts/node/md-to-pdf.js [target-file.md]
 ```
 
-### Step 7: Populate Business Section (if spec-stak.md exists)
+**What happens during generation**:
 
-If `STAK_EXISTS == "true"`, create Column 1 (Business) with:
+1. **Extract Mermaid blocks**: Find all ```mermaid code blocks in the markdown
+2. **Render diagrams as PNG**: Use Puppeteer + Mermaid CDN to render each diagram
+3. **Save images**: Store PNGs in `IMAGES_DIR/diagram-X.png`
+4. **Replace in markdown**: Substitute Mermaid blocks with `![](images/diagram-X.png)`
+5. **Convert to PDF**: Use md-to-pdf with A4 format and proper margins
+6. **Cleanup**: Remove temporary files
 
-```html
-<div class="col">
-    <section class="business">
-        <h2>VISÃO DE NEGÓCIO</h2>
+### Step 5: Report Results
 
-        <h3>Executive Summary</h3>
-        <p>[Insert Executive Summary content from spec-stak.md]</p>
+After successful generation, report:
 
-        <h3>Success Metrics</h3>
-        <table>
-            <tr>
-                <th>Métrica</th>
-                <th>Meta</th>
-                <th>Medição</th>
-            </tr>
-            [Insert rows from Success Metrics table]
-        </table>
+```
+✓ PDF gerado com sucesso!
 
-        <h3>ROI</h3>
-        <p>[Insert ROI information]</p>
+Arquivo: [OUTPUT_PDF]
+Imagens: [IMAGES_DIR]/ (X diagramas renderizados)
 
-        <h3>Approval Status</h3>
-        <table>
-            <tr>
-                <th>Papel</th>
-                <th>Nome</th>
-                <th>Status</th>
-                <th>Data</th>
-            </tr>
-            [Insert rows from Approval Status table]
-        </table>
-    </section>
+Para visualizar:
+  open [OUTPUT_PDF]              # macOS
+  xdg-open [OUTPUT_PDF]          # Linux
+  start [OUTPUT_PDF]             # Windows
 
-    <section class="business">
-        <h2>DIAGRAMAS</h2>
-        [For each Mermaid diagram found:]
-        <h3>[Diagram Title]</h3>
-        <div class="mermaid">
-[Diagram code here]
-        </div>
-    </section>
-</div>
+Dica: O PDF mantém o Markdown como fonte única.
+      Edite o .md e regenere o PDF quando necessário.
 ```
 
-If `STAK_EXISTS == "false"`, show notice instead:
+### Step 6: Handle Multiple Files (Optional)
 
-```html
-<div class="col">
-    <div class="notice">
-        <strong>Visão de Negócio Indisponível</strong><br>
-        Execute <code>/stak</code> para gerar spec-stak.md com Executive Summary, métricas e diagramas.
-    </div>
-</div>
+If user wants to generate PDFs for multiple files:
+
+```bash
+# Generate all main artifacts
+for file in spec.md spec-stak.md plan.md tasks.md; do
+    if [ -f "$FEATURE_DIR/$file" ]; then
+        scripts/bash/generate-print.sh --generate "$file"
+    fi
+done
 ```
-
-### Step 8: Populate Technical Section
-
-Create Column 2 (Technical) with:
-
-```html
-<div class="col">
-    <section class="technical">
-        <h2>USER STORIES</h2>
-
-        <h3>Prioridade 1 (Críticas)</h3>
-        [For each P1 story:]
-        <div style="margin-bottom: 5px;">
-            <div>
-                <span class="priority priority-p1">P1</span>
-                <strong>[Story title]</strong>
-            </div>
-            <div style="font-size: 6pt; margin-left: 15px;">
-                [Story description]
-            </div>
-            <div style="font-size: 6pt; margin-left: 15px; margin-top: 2px;">
-                <em>Cenários:</em>
-                <ul style="margin: 2px 0; padding-left: 15px;">
-                    [List acceptance scenarios - max 3]
-                    [If more than 3: add "... (ver spec.md completo)"]
-                </ul>
-            </div>
-        </div>
-
-        <h3>Prioridade 2 & 3</h3>
-        <ul style="font-size: 6pt; margin: 2px 0; padding-left: 15px;">
-            [For each P2/P3 story:]
-            <li>
-                <span class="priority priority-p2">P2</span> [Story title only]
-            </li>
-        </ul>
-    </section>
-
-    <section class="technical">
-        <h2>KEY ENTITIES</h2>
-        <table>
-            <tr>
-                <th>Entidade</th>
-                <th>Descrição</th>
-            </tr>
-            [For each entity (max 10):]
-            <tr>
-                <td><strong>[Entity name]</strong></td>
-                <td>[Brief description]</td>
-            </tr>
-        </table>
-        [If entities > 10:]
-        <p style="font-size: 5pt; font-style: italic;">
-            + [X] entidades adicionais omitidas (ver spec.md)
-        </p>
-    </section>
-
-    <section class="technical">
-        <h2>SUCCESS CRITERIA</h2>
-        [For each SC-XXX:]
-        <div class="item">
-            <span class="checkbox"></span>
-            <div style="flex: 1;">
-                <strong>[SC-XXX]:</strong> [Description]
-            </div>
-        </div>
-    </section>
-</div>
-```
-
-### Step 9: Add Interactive Elements
-
-Create Column 3 (Interactive) with:
-
-```html
-<div class="col">
-    <section class="interactive">
-        <h2>CHECKLIST DE PROGRESSO</h2>
-
-        <h3>Datas</h3>
-        <div class="item">
-            <strong>Início:</strong>
-            <div class="item-text"></div>
-        </div>
-        <div class="item">
-            <strong>Entrega:</strong>
-            <div class="item-text"></div>
-        </div>
-
-        <h3>Status de Implementação</h3>
-        [Create 8 checkbox items:]
-        <div class="item">
-            <span class="checkbox"></span>
-            <div class="item-text"></div>
-        </div>
-    </section>
-
-    <section class="interactive">
-        <h2>ITENS A CLARIFICAR</h2>
-        [If clarification items found in spec.md:]
-        <div style="font-size: 6pt; margin-bottom: 3px;">
-            [For each [NEEDS CLARIFICATION] item:]
-            <div class="item">
-                <span class="checkbox"></span>
-                <div style="flex: 1;">
-                    <strong>[Section]:</strong> [Clarification question/topic]
-                </div>
-            </div>
-        </div>
-        [If no clarification items:]
-        <p style="font-size: 6pt; font-style: italic;">Nenhum item pendente de clarificação</p>
-    </section>
-
-    <section class="interactive">
-        <h2>DECISÕES TÉCNICAS</h2>
-        <h3>Para Discutir com Equipe</h3>
-        [If "Open Questions" found in spec-stak.md:]
-        <div style="font-size: 6pt; margin-bottom: 3px;">
-            [For each open question:]
-            <div class="item">
-                <span class="checkbox"></span>
-                <div style="flex: 1;">[Question text]</div>
-            </div>
-        </div>
-        [If no open questions, create blank items:]
-        <div class="item">
-            <span class="checkbox"></span>
-            <div class="item-text"></div>
-        </div>
-        [Repeat 4 more times for manual entry]
-    </section>
-
-    <section class="interactive">
-        <h2>NOTAS DE IMPLEMENTAÇÃO</h2>
-        <h3>Decisões Tomadas</h3>
-        [Create 4 blank lines:]
-        <div class="linha"></div>
-
-        <h3>Bloqueadores / Riscos</h3>
-        [Create 4 blank lines:]
-        <div class="linha"></div>
-
-        <h3>Próximos Passos</h3>
-        [Create 4 blank lines:]
-        <div class="linha"></div>
-    </section>
-
-    <section class="interactive">
-        <h2>REFERÊNCIAS</h2>
-        <div style="font-size: 6pt;">
-            <strong>Feature:</strong> [BRANCH]<br>
-            <strong>Spec:</strong> spec.md<br>
-            <strong>Stak:</strong> spec-stak.md [if exists]<br>
-            <strong>Plan:</strong> plan.md [if exists]
-        </div>
-    </section>
-</div>
-```
-
-### Step 10: Handle Mermaid Diagrams
-
-For each Mermaid diagram extracted in Step 3:
-
-1. **Wrap in proper div**:
-```html
-<div class="mermaid">
-[Exact Mermaid code from spec-stak.md]
-</div>
-```
-
-2. **Diagram types to look for**:
-   - `sequenceDiagram` - User Journey
-   - `graph TD` or `graph LR` - Architecture/Flowcharts
-   - `erDiagram` - Entity Relationships
-   - `gantt` - Implementation Timeline
-
-3. **Fallback handling**:
-   - If no diagrams found: Show placeholder `<p style="font-size: 6pt; font-style: italic;">[Nenhum diagrama disponível]</p>`
-   - If Mermaid code is malformed: Browser will show error, but don't block HTML generation
-   - CDN handles rendering client-side
-
-### Step 11: Optimize for Print
-
-1. **Add page header**:
-```html
-<body>
-    <h1>[Feature Name] - Visão Completa para Impressão</h1>
-    <div style="font-size: 6pt; margin-bottom: 8px;">
-        <strong>Branch:</strong> [BRANCH] |
-        <strong>Gerado:</strong> [Current date in DD/MM/YYYY format]
-    </div>
-
-    [Three-column layout here]
-```
-
-2. **Add page footer**:
-```html
-    <div class="footer">
-        Gerado em [Current date and time] - spec-kit print command
-    </div>
-</body>
-```
-
-3. **Smart page breaks**:
-   - If content is very long, add `<div class="page-break"></div>` between major sections
-   - CSS already has `page-break-inside: avoid` for tables and sections
-
-### Step 12: Handle Edge Cases
-
-**Edge Case 1: spec-stak.md doesn't exist**
-- Show notice box in Column 1 (already covered in Step 7)
-- Continue with technical content only
-
-**Edge Case 2: Very long P1 stories**
-- Limit to 3 acceptance scenarios per story
-- Add "... (ver spec.md completo)" if truncated
-
-**Edge Case 3: Too many entities**
-- Show top 10 only
-- Add count: "+ [X] entidades adicionais omitidas"
-
-**Edge Case 4: Missing sections in spec.md**
-- User Stories: Show notice "Nenhuma user story definida"
-- Entities: Show notice "Nenhuma entidade definida"
-- Success Criteria: Show notice "Nenhum critério definido"
-
-**Edge Case 5: HTML special characters**
-- Escape: `<` → `&lt;`, `>` → `&gt;`, `&` → `&amp;`, `"` → `&quot;`
-- Apply to all extracted content before embedding
-
-**Edge Case 6: Very long feature names**
-- Truncate to 60 characters in title
-- Show full name in metadata section
-
-### Step 13: Validate HTML
-
-Before writing, validate:
-
-1. **HTML structure**:
-   - ✓ DOCTYPE present
-   - ✓ `<html>`, `<head>`, `<body>` properly nested
-   - ✓ All tags closed
-   - ✓ UTF-8 charset specified
-
-2. **CSS validity**:
-   - ✓ No syntax errors in embedded CSS
-   - ✓ @page rule properly formatted
-   - ✓ All classes referenced in HTML are defined
-
-3. **Content completeness**:
-   - ✓ Feature name present
-   - ✓ At least technical section populated
-   - ✓ Footer with generation timestamp
-
-4. **Mermaid setup**:
-   - ✓ CDN script tag present
-   - ✓ mermaid.initialize() called
-   - ✓ Diagrams wrapped in `.mermaid` divs
-
-### Step 14: Write Output
-
-1. **Build complete HTML in memory** (don't write incrementally)
-
-2. **Write atomically** to `PRINT_OUTPUT`:
-   - Single write operation with full content
-   - Prevents partial/corrupted files
-
-3. **Report success**:
-```
-✓ Print-optimized HTML generated successfully!
-
-Output: [PRINT_OUTPUT]
-
-To view:
-1. Open in browser: open [PRINT_OUTPUT]
-2. Print: Ctrl+P (Cmd+P on Mac)
-3. Settings: A4, landscape (opcional), cores habilitadas
-
-Content included:
-[✓] Technical specification (spec.md)
-[✓/✗] Business content (spec-stak.md) - [available/not available]
-[✓] Interactive elements (checkboxes, notes)
-[✓] Mermaid diagrams - [X diagrams rendered / none available]
-```
-
-4. **Handoff suggestions**:
-   - If spec-stak.md missing: "Run /stak to generate business content"
-   - If plan.md missing: "Run /plan to create implementation plan"
 
 ## Operating Principles
 
-1. **Graceful Degradation**: Work with minimal prerequisites (spec.md only)
-2. **Visual Clarity**: Optimize typography and spacing for readability when printed
-3. **Information Density**: Fit comprehensive overview on 1-2 A4 pages through smart prioritization
-4. **Offline Utility**: Include interactive elements (checkboxes, blank lines) for manual use
-5. **Atomic Operations**: Build complete HTML in memory before single write
-6. **Error Tolerance**: Don't fail on missing optional content (spec-stak.md, diagrams)
-7. **Print First**: CSS optimized specifically for physical printing, not screen viewing
+1. **Markdown as Source**: Never edit PDFs directly - always edit the `.md` file and regenerate
+2. **Automatic Diagrams**: Mermaid diagrams are rendered as PNG automatically
+3. **Git Friendly**: Images in `images/` can be committed for offline viewing
+4. **Fast Iteration**: ~15 seconds per PDF vs ~5 minutes manual browser printing
+5. **Graceful Fallback**: Works without Puppeteer (Mermaid won't render, but PDF still generates)
 
-## Content Prioritization Strategy
+## Mermaid Diagram Support
 
-To fit on A4 paper:
+The following Mermaid diagram types are supported:
 
-- **P1 stories**: Full detail (up to 3 scenarios each)
-- **P2/P3 stories**: Title only
-- **Entities**: Top 10 most critical
-- **Success Criteria**: All included (with checkboxes)
-- **Diagrams**: All included (Mermaid renders compactly)
-- **Interactive elements**: Generous space for manual notes
+- `sequenceDiagram` - User journeys, API flows
+- `graph TD/LR` - Flowcharts, architecture diagrams
+- `erDiagram` - Entity relationship diagrams
+- `gantt` - Project timelines
+- `classDiagram` - Class structures
+- `stateDiagram` - State machines
+- `pie` - Pie charts
 
-This creates a **scannable overview** that provides visual clarity while working offline, reducing screen fatigue during AI-assisted development.
+**Example**:
+```mermaid
+graph TD
+    A[spec.md] --> B[md-to-pdf.js]
+    B --> C[Extract Mermaid]
+    C --> D[Render PNG]
+    D --> E[Replace in MD]
+    E --> F[Generate PDF]
+```
+
+## Troubleshooting
+
+### Diagrams not rendering
+
+**Cause**: Puppeteer not installed
+
+**Solution**:
+```bash
+npm install puppeteer
+```
+
+### PDF generation fails
+
+**Cause**: md-to-pdf not available
+
+**Solution**:
+```bash
+# It uses npx, so should work automatically
+# If not, install globally:
+npm install -g md-to-pdf
+```
+
+### Large diagrams cut off
+
+**Cause**: Diagram too complex for default viewport
+
+**Solution**: Edit `scripts/node/md-to-pdf.js` and increase viewport:
+```javascript
+await page.setViewport({ width: 1600, height: 1200 });
+```
+
+### Timeout on complex diagrams
+
+**Cause**: Rendering takes too long
+
+**Solution**: Increase timeout in script:
+```javascript
+await new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds
+```
+
+## Output Files
+
+After running the command:
+
+```
+specs/{feature-id}/
+├── spec.md              # Source (edit this)
+├── spec.pdf             # Generated PDF
+├── spec-stak.md         # Source (edit this)
+├── spec-stak.pdf        # Generated PDF
+├── plan.md              # Source
+├── plan.pdf             # Generated PDF (if requested)
+└── images/              # Mermaid diagrams as PNG
+    ├── diagram-0.png
+    ├── diagram-1.png
+    └── ...
+```
+
+## Integration with Other Commands
+
+**After /speckit.specify**:
+```
+Use /print to generate a PDF of the technical specification.
+```
+
+**After /speckit.stak**:
+```
+Use /print to generate a professional PDF for stakeholder distribution.
+```
+
+**After /speckit.plan**:
+```
+Use /print plan.md to generate a PDF of the implementation plan.
+```
+
+## Quick Reference
+
+```bash
+# Generate PDF of default file (spec-stak.md or spec.md)
+scripts/bash/generate-print.sh --generate
+
+# Generate PDF of specific file
+scripts/bash/generate-print.sh --generate spec.md
+scripts/bash/generate-print.sh --generate plan.md
+
+# Show available paths (JSON for agents)
+scripts/bash/generate-print.sh --json
+
+# Show help
+scripts/bash/generate-print.sh --help
+```
+
+## Benefits Over HTML Printing
+
+| Aspect | Old (HTML → Browser Print) | New (MD → PDF) |
+|--------|---------------------------|----------------|
+| **Process** | Manual (Ctrl+P) | Automatic |
+| **Time** | ~5 minutes | ~15 seconds |
+| **Diagrams** | Manual rendering | Automatic PNG |
+| **Source** | HTML + MD (two files) | MD only (single source) |
+| **Consistency** | Varies by browser | Always consistent |
+| **Git Friendly** | Hard to diff HTML | Clean MD diffs |
